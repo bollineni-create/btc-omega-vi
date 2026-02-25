@@ -9,18 +9,16 @@ PLIST_NAME="com.btcomega.trader.plist"
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
 DEST_PLIST="$LAUNCH_AGENTS/$PLIST_NAME"
 
-# Ensure plist points to this project
+# Ensure plist exists
 if [ ! -f "$PLIST_NAME" ]; then
   echo "Missing $PLIST_NAME. Run this from btc-omega-vi project root."
   exit 1
 fi
 
-# Update plist with this project path (in case repo was moved)
-sed -i.bak "s|/Users/bollineni/btc-omega-vi|$PROJECT_DIR|g" "$PLIST_NAME"
-rm -f "${PLIST_NAME}.bak" 2>/dev/null || true
-
+# Copy plist with project path substituted (placeholder __PROJECT_DIR__ → actual path).
+# Do not modify the repo file so it stays portable across clones and users.
 mkdir -p "$LAUNCH_AGENTS"
-cp "$PLIST_NAME" "$DEST_PLIST"
+sed "s|__PROJECT_DIR__|$PROJECT_DIR|g" "$PLIST_NAME" > "$DEST_PLIST"
 echo "Installed: $DEST_PLIST"
 
 # Unload first if already loaded
