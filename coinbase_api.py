@@ -11,10 +11,13 @@ Refs:
   - Orders:  https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
 """
 
+import base64
+import json
 import os
 import time
 import uuid
 import requests
+from requests.exceptions import HTTPError
 
 # ─── Base URLs ─────────────────────────────────────────────────────────────
 PRICES_BASE = "https://api.coinbase.com/v2/prices"
@@ -198,8 +201,76 @@ def build_limit_order(
     }
 
 
+def _base64_private_key_to_pem(b64: str):
+    """Convert CDP-style base64 private key to PEM (raw EC P-256 bytes or DER)."""
+    try:
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives.asymmetric import ec
+        from cryptography.hazmat.primitives.serialization import (
+            Encoding,
+            NoEncryption,
+            PrivateFormat,
+            load_der_private_key,
+        )
+    except ImportError as e:
+        raise RuntimeError(
+            "Converting CDP base64 key to PEM requires: pip install cryptography"
+        ) from e
+    raw = base64.b64decode(b64.strip(), validate=True)
+    # If it looks like DER (PKCS8 or SEC1), load and re-export as PEM
+    if len(raw) > 32:
+        try:
+            key = load_der_private_key(raw, password=None, backend=default_backend())
+            return key.private_bytes(
+                Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
+            ).decode()
+        except Exception:
+            pass
+    # Raw P-256 private key is 32 bytes; some exports use 64 (take first 32)
+    if len(raw) < 32:
+        raise ValueError(
+            f"CDP privateKey base64 decodes to {len(raw)} bytes; need at least 32 for EC P-256"
+        )
+    private_value = int.from_bytes(raw[:32], "big")
+    key = ec.derive_private_key(
+        private_value, ec.SECP256R1(), default_backend()
+    )
+    return key.private_bytes(
+        Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
+    ).decode()
+
+
+def _load_cdp_key_json(path: str) -> tuple[str, str]:
+    """Load name/id and privateKey from a CDP API key JSON file; return (api_key, pem)."""
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    # Prefer full key name (organizations/.../apiKeys/...) if present; else key id (UUID)
+    key_id = data.get("name") or data.get("id")
+    private_b64 = data.get("privateKey")
+    if not key_id or not private_b64:
+        raise ValueError(
+            f"CDP key JSON at {path} must contain 'name' or 'id' and 'privateKey'"
+        )
+    key_id = str(key_id).strip()
+    pem = _base64_private_key_to_pem(private_b64)
+    return (key_id, pem)
+
+
+def _normalize_api_key(key: str) -> str:
+    """
+    Advanced Trade JWT requires the full key name: organizations/{org_id}/apiKeys/{key_id}.
+    If key is only the key_id (e.g. UUID) and COINBASE_ORG_ID is set, build the full name.
+    """
+    if not key or key.startswith("organizations/"):
+        return key
+    org_id = os.environ.get("COINBASE_ORG_ID")
+    if org_id:
+        return f"organizations/{org_id.strip()}/apiKeys/{key}"
+    return key
+
+
 def _get_client(api_key: str | None, api_secret: str | None):
-    """Import and return RESTClient; uses COINBASE_API_KEY / COINBASE_API_SECRET if not passed."""
+    """Import and return RESTClient; uses COINBASE_API_KEY / COINBASE_API_SECRET or cdp_api_key.json if not passed."""
     try:
         from coinbase.rest import RESTClient
     except ImportError as e:
@@ -209,12 +280,36 @@ def _get_client(api_key: str | None, api_secret: str | None):
         ) from e
     key = api_key or os.environ.get("COINBASE_API_KEY")
     secret = api_secret or os.environ.get("COINBASE_API_SECRET")
+    # If no key/secret, try CDP key JSON (e.g. cdp_api_key.json)
+    cdp_path = os.environ.get("COINBASE_CDP_KEY_JSON", "cdp_api_key.json")
+    if (not key or not secret) and os.path.isfile(cdp_path):
+        try:
+            key, secret = _load_cdp_key_json(cdp_path)
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to load Coinbase key from {cdp_path}: {e}"
+            ) from e
+    # JWT requires full key name: organizations/{org_id}/apiKeys/{key_id}
+    key = _normalize_api_key(key) if key else key
     if not key or not secret:
         raise RuntimeError(
             "Coinbase orders require authentication. Set COINBASE_API_KEY and "
-            "COINBASE_API_SECRET (CDP API key name and EC private key PEM). "
+            "COINBASE_API_SECRET (PEM or base64 private key), or put a CDP key file at "
+            "cdp_api_key.json (or set COINBASE_CDP_KEY_JSON). "
             "See https://docs.cdp.coinbase.com/advanced-trade/docs/getting-started"
         )
+    # If secret doesn't look like PEM, treat as CDP base64 privateKey and convert
+    if isinstance(secret, str):
+        secret = secret.strip()
+    if secret and "-----BEGIN" not in secret:
+        try:
+            secret = _base64_private_key_to_pem(secret)
+        except Exception as e:
+            raise RuntimeError(
+                "COINBASE_API_SECRET is not PEM and could not be interpreted as "
+                "CDP base64 private key. Use an EC private key PEM or the base64 "
+                "privateKey from cdp_api_key.json. Detail: " + str(e)
+            ) from e
     # Normalize PEM: .env often has literal \n or bad line endings; SDK needs clean PEM
     if isinstance(secret, str):
         secret = secret.strip()
@@ -224,6 +319,17 @@ def _get_client(api_key: str | None, api_secret: str | None):
         secret = "\n".join(lines)
         if secret and not secret.endswith("\n"):
             secret += "\n"
+    # Validate PEM so we can raise a clear error if still invalid
+    try:
+        from cryptography.hazmat.primitives.serialization import load_pem_private_key
+        load_pem_private_key(secret.encode() if isinstance(secret, str) else secret, password=None)
+    except ImportError:
+        pass
+    except Exception as e:
+        raise RuntimeError(
+            "COINBASE_API_SECRET (or CDP key) could not be loaded as EC private key. "
+            "Detail: " + str(e)
+        ) from e
     return RESTClient(api_key=key, api_secret=secret)
 
 
@@ -242,6 +348,14 @@ def get_balance(
     for _ in range(20):  # max 20 pages
         try:
             resp = client.get_accounts(limit=250, cursor=cursor) if cursor else client.get_accounts(limit=250)
+        except HTTPError as e:
+            if e.response is not None and e.response.status_code == 401:
+                raise RuntimeError(
+                    "Coinbase returned 401 Unauthorized. The Advanced Trade API requires the full key name "
+                    "(organizations/{org_id}/apiKeys/{key_id}), not just the key ID. Run: python check_coinbase_key.py "
+                    "for step-by-step fix. Set COINBASE_ORG_ID in .env (get org ID from https://cloud.coinbase.com/access/api)."
+                ) from e
+            raise
         except TypeError:
             resp = client.get_accounts()
         if hasattr(resp, "to_dict"):

@@ -189,8 +189,12 @@ Use `Ctrl+C` to stop the loop.
 | `BTCOmega_DRY_RUN` | — | Set to `1` or `true` to log orders without sending (live only). |
 | `BTCOmega_LOG_PATH` | — | If set, append logs to this file (and still print to stdout). |
 | `RUN_INTERVAL_MINUTES` | `0` | If > 0, run in a loop every N minutes (autonomous day trading). |
-| `COINBASE_API_KEY` | — | Required for live; CDP API key name. |
-| `COINBASE_API_SECRET` | — | Required for live; EC private key PEM. **Never commit.** |
+| `COINBASE_API_KEY` | — | Required for live; full key name `organizations/{org_id}/apiKeys/{key_id}` or key ID if `COINBASE_ORG_ID` is set. |
+| `COINBASE_API_SECRET` | — | Required for live; EC private key PEM or base64 private key from CDP JSON. **Never commit.** |
+| `COINBASE_ORG_ID` | — | If set and `COINBASE_API_KEY` is only the key ID (UUID), the full key name is built as `organizations/{COINBASE_ORG_ID}/apiKeys/{key_id}`. Get org ID from [CDP API keys](https://cloud.coinbase.com/access/api). |
+| `COINBASE_CDP_KEY_JSON` | `cdp_api_key.json` | Path to CDP key JSON (fields `name` or `id`, and `privateKey`). If no key/secret in env, this file is used. |
+
+**401 Unauthorized:** The Advanced Trade API expects the **full key name** in the JWT, not just the key ID. If you only have the key ID (e.g. from `cdp_api_key.json` with an `id` field), set `COINBASE_ORG_ID` to your organization ID (from the CDP portal when viewing the key), or set `COINBASE_API_KEY` to the full string `organizations/YOUR_ORG_ID/apiKeys/YOUR_KEY_ID`.
 
 ### 9.3 Safety
 
