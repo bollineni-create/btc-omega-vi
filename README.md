@@ -1,5 +1,9 @@
 # BTC OMEGA VI — Local Setup & Run
 
+## Security
+
+**Never commit `.env` or API key files.** They are listed in `.gitignore`. If `.env` or any file containing `COINBASE_API_SECRET`, `COINBASE_ORG_ID`, `KRAKEN_API_SECRET`, or similar credentials was ever committed to the repository, **revoke those keys immediately** in the Coinbase/Kraken portals and create new ones. Exposed keys can be used to access your account and execute trades or withdraw funds.
+
 ## 1. Prerequisites
 Python 3.9 or higher required.
 
@@ -215,7 +219,7 @@ To have the trader run automatically every hour, survive reboots, and keep runni
    chmod +x install_24_7.sh run_trader_cycle.sh
    ./install_24_7.sh
    ```
-   This copies `com.btcomega.trader.plist` to `~/Library/LaunchAgents/` and loads it. The job runs **once at load** and then **every 60 minutes**.
+   This copies `com.btcomega.trader.plist` to `~/Library/LaunchAgents/`, substituting your project path for the `__PROJECT_DIR__` placeholder, and loads it. The job runs **once at load** and then **every 60 minutes**. Do not copy the plist manually—always use `./install_24_7.sh` so paths are correct for your machine.
 
 3. **Control the job:**
    - Stop: `launchctl unload ~/Library/LaunchAgents/com.btcomega.trader.plist`

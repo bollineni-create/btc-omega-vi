@@ -47,3 +47,168 @@ Exception: Unable to load PEM file. See https://cryptography.io/en/latest/faq/#w
 Are you sure you generated your key at https://cloud.coinbase.com/access/api ?
 2026-02-24 21:25:29 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
 2026-02-24 21:26:40 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:27:40 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+Traceback (most recent call last):
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/jwt_generator.py", line 16, in build_jwt
+    private_key = serialization.load_pem_private_key(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Unable to load PEM file. See https://cryptography.io/en/latest/faq/#why-can-t-i-import-my-pem-file for more details. MalformedFraming
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 304, in <module>
+    main()
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 291, in main
+    run_one_cycle(log)
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 209, in run_one_cycle
+    bal = get_balance()
+          ^^^^^^^^^^^^^
+  File "/Users/bollineni/btc-omega-vi/coinbase_api.py", line 244, in get_balance
+    resp = client.get_accounts(limit=250, cursor=cursor) if cursor else client.get_accounts(limit=250)
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/accounts.py", line 37, in get_accounts
+    return ListAccountsResponse(self.get(endpoint, params=params, **kwargs))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 101, in get
+    return self.prepare_and_send_request(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 199, in prepare_and_send_request
+    headers = self.set_headers(http_method, url_path)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 255, in set_headers
+    "Authorization": f"Bearer {jwt_generator.build_rest_jwt(uri, self.api_key, self.api_secret)}",
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/jwt_generator.py", line 63, in build_rest_jwt
+    return build_jwt(key_var, secret_var, uri=uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/jwt_generator.py", line 21, in build_jwt
+    raise Exception(
+Exception: Unable to load PEM file. See https://cryptography.io/en/latest/faq/#why-can-t-i-import-my-pem-file for more details. MalformedFraming
+Are you sure you generated your key at https://cloud.coinbase.com/access/api ?
+2026-02-24 21:28:24 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:32:42 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:32:42 - coinbase.RESTClient - ERROR - HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:32:42 [ERROR] HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+Traceback (most recent call last):
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 304, in <module>
+    main()
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 291, in main
+    run_one_cycle(log)
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 209, in run_one_cycle
+    bal = get_balance()
+          ^^^^^^^^^^^^^
+  File "/Users/bollineni/btc-omega-vi/coinbase_api.py", line 333, in get_balance
+    resp = client.get_accounts(limit=250, cursor=cursor) if cursor else client.get_accounts(limit=250)
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/accounts.py", line 37, in get_accounts
+    return ListAccountsResponse(self.get(endpoint, params=params, **kwargs))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 101, in get
+    return self.prepare_and_send_request(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 207, in prepare_and_send_request
+    return self.send_request(http_method, url_path, params, headers, data=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 228, in send_request
+    handle_exception(response)  # Raise an HTTPError for bad responses
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 47, in handle_exception
+    raise HTTPError(http_error_msg, response=response)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:35:38 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:35:38 [ERROR] HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:35:41 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:35:41 [ERROR] HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:37:44 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:37:44 - coinbase.RESTClient - ERROR - HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:37:44 [ERROR] HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+Traceback (most recent call last):
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 304, in <module>
+    main()
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 291, in main
+    run_one_cycle(log)
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 209, in run_one_cycle
+    bal = get_balance()
+          ^^^^^^^^^^^^^
+  File "/Users/bollineni/btc-omega-vi/coinbase_api.py", line 347, in get_balance
+    resp = client.get_accounts(limit=250, cursor=cursor) if cursor else client.get_accounts(limit=250)
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/accounts.py", line 37, in get_accounts
+    return ListAccountsResponse(self.get(endpoint, params=params, **kwargs))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 101, in get
+    return self.prepare_and_send_request(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 207, in prepare_and_send_request
+    return self.send_request(http_method, url_path, params, headers, data=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 228, in send_request
+    handle_exception(response)  # Raise an HTTPError for bad responses
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 47, in handle_exception
+    raise HTTPError(http_error_msg, response=response)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:39:06 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:39:06 [ERROR] HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:42:08 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:42:08 [ERROR] HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:42:46 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:42:46 - coinbase.RESTClient - ERROR - HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+2026-02-24 21:42:46 [ERROR] HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+HTTP Error: 401 Client Error: Unauthorized Unauthorized
+
+Traceback (most recent call last):
+  File "/Users/bollineni/btc-omega-vi/coinbase_api.py", line 350, in get_balance
+    resp = client.get_accounts(limit=250, cursor=cursor) if cursor else client.get_accounts(limit=250)
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/accounts.py", line 37, in get_accounts
+    return ListAccountsResponse(self.get(endpoint, params=params, **kwargs))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 101, in get
+    return self.prepare_and_send_request(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 207, in prepare_and_send_request
+    return self.send_request(http_method, url_path, params, headers, data=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 228, in send_request
+    handle_exception(response)  # Raise an HTTPError for bad responses
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 47, in handle_exception
+    raise HTTPError(http_error_msg, response=response)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized Unauthorized
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 304, in <module>
+    main()
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 291, in main
+    run_one_cycle(log)
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 209, in run_one_cycle
+    bal = get_balance()
+          ^^^^^^^^^^^^^
+  File "/Users/bollineni/btc-omega-vi/coinbase_api.py", line 353, in get_balance
+    raise RuntimeError(
+RuntimeError: Coinbase returned 401 Unauthorized. The Advanced Trade API requires the full key name (organizations/{org_id}/apiKeys/{key_id}), not just the key ID. Run: python check_coinbase_key.py for step-by-step fix. Set COINBASE_ORG_ID in .env (get org ID from https://cloud.coinbase.com/access/api).

@@ -1,0 +1,20 @@
+# Environment and secrets — never commit
+.env
+.env.local
+*.pem
+cdp_api_key.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+venv/
+.venv/
+
+# Project outputs
+*.xlsx
+paper_state.json
+trades.json
+trader.log
+btc_omega2_data.json
