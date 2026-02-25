@@ -1,0 +1,49 @@
+2026-02-24 20:53:57 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 20:53:57 [INFO] No trade: position in line with signal
+2026-02-24 21:01:50 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:01:50 [INFO] No trade: position in line with signal
+2026-02-24 21:09:20 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:09:20 [INFO] Thinking: capital=$10000.00 balance_usd=$10000.00 position_btc=0.000000 desired_btc=0.000000 delta_btc=0.000000 price=$65465.07
+2026-02-24 21:09:20 [INFO] No trade: position in line with signal
+2026-02-24 21:22:38 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+Traceback (most recent call last):
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/jwt_generator.py", line 16, in build_jwt
+    private_key = serialization.load_pem_private_key(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Unable to load PEM file. See https://cryptography.io/en/latest/faq/#why-can-t-i-import-my-pem-file for more details. MalformedFraming
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 304, in <module>
+    main()
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 291, in main
+    run_one_cycle(log)
+  File "/Users/bollineni/btc-omega-vi/run_coinbase_trader.py", line 209, in run_one_cycle
+    bal = get_balance()
+          ^^^^^^^^^^^^^
+  File "/Users/bollineni/btc-omega-vi/coinbase_api.py", line 235, in get_balance
+    resp = client.get_accounts(limit=250, cursor=cursor) if cursor else client.get_accounts(limit=250)
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/accounts.py", line 37, in get_accounts
+    return ListAccountsResponse(self.get(endpoint, params=params, **kwargs))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 101, in get
+    return self.prepare_and_send_request(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 199, in prepare_and_send_request
+    headers = self.set_headers(http_method, url_path)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/rest/rest_base.py", line 255, in set_headers
+    "Authorization": f"Bearer {jwt_generator.build_rest_jwt(uri, self.api_key, self.api_secret)}",
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/jwt_generator.py", line 63, in build_rest_jwt
+    return build_jwt(key_var, secret_var, uri=uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/coinbase/jwt_generator.py", line 21, in build_jwt
+    raise Exception(
+Exception: Unable to load PEM file. See https://cryptography.io/en/latest/faq/#why-can-t-i-import-my-pem-file for more details. MalformedFraming
+Are you sure you generated your key at https://cloud.coinbase.com/access/api ?
+2026-02-24 21:25:29 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
+2026-02-24 21:26:40 [INFO] Signal: direction=0 (1=long -1=short 0=flat) size_pct=0.0000 regime=TREND_DOWN vote=0.015
