@@ -351,9 +351,12 @@ def get_balance(
         except HTTPError as e:
             if e.response is not None and e.response.status_code == 401:
                 raise RuntimeError(
-                    "Coinbase returned 401 Unauthorized. The Advanced Trade API requires the full key name "
-                    "(organizations/{org_id}/apiKeys/{key_id}), not just the key ID. Run: python check_coinbase_key.py "
-                    "for step-by-step fix. Set COINBASE_ORG_ID in .env (get org ID from https://cloud.coinbase.com/access/api)."
+                    "Coinbase returned 401 Unauthorized. If the key name format is already correct (run "
+                    "python check_coinbase_key.py to confirm), then: (1) Confirm the key was created for "
+                    "Advanced Trade at https://cloud.coinbase.com/access/api and has view/trade permissions. "
+                    "(2) Confirm COINBASE_ORG_ID matches the organization ID shown for this key in the portal. "
+                    "(3) Try creating a new API key, download the JSON, and use its 'name' field as "
+                    "COINBASE_API_KEY (then you can omit COINBASE_ORG_ID)."
                 ) from e
             raise
         except TypeError:
