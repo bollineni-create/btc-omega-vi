@@ -1,0 +1,19 @@
+{
+  "plugins": {
+    "phantom-connect": {
+      "enabled": true
+    },
+    "compound-engineering": {
+      "enabled": true
+    },
+    "figma": {
+      "enabled": true
+    },
+    "supabase": {
+      "enabled": true
+    },
+    "vercel": {
+      "enabled": true
+    }
+  }
+}

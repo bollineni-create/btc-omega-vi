@@ -215,9 +215,15 @@ def _get_client(api_key: str | None, api_secret: str | None):
             "COINBASE_API_SECRET (CDP API key name and EC private key PEM). "
             "See https://docs.cdp.coinbase.com/advanced-trade/docs/getting-started"
         )
-    # .env often stores PEM with literal \n; SDK needs real newlines
-    if isinstance(secret, str) and "\\n" in secret:
+    # Normalize PEM: .env often has literal \n or bad line endings; SDK needs clean PEM
+    if isinstance(secret, str):
+        secret = secret.strip()
         secret = secret.replace("\\n", "\n")
+        secret = secret.replace("\r\n", "\n").replace("\r", "\n")
+        lines = [line.strip() for line in secret.splitlines()]
+        secret = "\n".join(lines)
+        if secret and not secret.endswith("\n"):
+            secret += "\n"
     return RESTClient(api_key=key, api_secret=secret)
 
 

@@ -18,7 +18,13 @@
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
-import sys, math, time, json, warnings, itertools
+import os
+import sys
+import math
+import time
+import json
+import warnings
+import itertools
 import numpy as np
 import pandas as pd
 from scipy.signal import butter, filtfilt
@@ -657,6 +663,67 @@ def backtest(
     res["mae_list"] = mae_list
     res["markov"]   = markov
     return res
+
+
+def get_live_signal(
+    df: pd.DataFrame,
+    sl_pct: float = 2.0,
+    tp_pct: float = 4.0,
+    threshold: float = 0.15,
+    default_size_pct: float = 0.05,
+) -> dict:
+    """
+    Compute a single end-of-series signal from the Omega VI strategy (regime + vote + thresholds).
+    For use by the live/paper trader. No Kelly history available, so uses default_size_pct.
+
+    Returns dict: direction (-1/0/1), size_pct (fraction of capital), stop_pct, target_pct,
+    regime_name, vote (raw), eff_threshold.
+    """
+    if len(df) < 50:
+        return {"direction": 0, "size_pct": 0.0, "stop_pct": sl_pct, "target_pct": tp_pct,
+                "regime_name": "INSUFFICIENT_DATA", "vote": 0.0, "eff_threshold": threshold}
+    regime_det = RegimeDetector()
+    freq_layer = FrequencyLayer()
+    ind_engine = IndicatorEnsemble()
+    regimes = regime_det.classify(df)
+    markov = regime_det.build_markov(regimes)
+    tesla = freq_layer.signal(df)
+    ind_vote = ind_engine.compute(df)
+    _, kv = kalman_trend(df["close"])
+    kv_norm = kv / (df["close"].abs().rolling(20).std() + 1e-9)
+    vote = ind_vote * 0.65 + tesla.astype(float) * 0.30 + kv_norm.clip(-1, 1) * 0.05
+    vol_ok = (df["volume"] / (df["volume"].rolling(20).mean() + 1e-9) > 0.70).values
+
+    i = len(df) - 1
+    cv = float(vote.iloc[i])
+    reg = int(regimes.iloc[i])
+    markov_vol_risk = markov[reg][3]
+    markov_scale = 0.50 if markov_vol_risk > 0.28 else 1.00
+    reg_thr = RegimeDetector.REGIME_THRESHOLD.get(reg, threshold)
+    eff_thr = max(threshold, reg_thr)
+    lm = RegimeDetector.LONG_MULT.get(reg, 0.0)
+    sm = RegimeDetector.SHORT_MULT.get(reg, 0.0)
+    reg_name = RegimeDetector.NAMES.get(reg, "?")
+
+    direction = 0
+    size_pct = 0.0
+    if cv >= eff_thr and lm > 0 and vol_ok[i]:
+        direction = 1
+        size_pct = min(default_size_pct * lm * markov_scale, 0.10)
+    elif cv <= -eff_thr and sm > 0 and vol_ok[i]:
+        direction = -1
+        size_pct = min(default_size_pct * sm * markov_scale, 0.10)
+
+    return {
+        "direction": direction,
+        "size_pct": size_pct,
+        "stop_pct": sl_pct,
+        "target_pct": tp_pct,
+        "regime_name": reg_name,
+        "vote": cv,
+        "eff_threshold": eff_thr,
+    }
+
 
     regime_det  = RegimeDetector()
     freq_layer  = FrequencyLayer()
@@ -1392,7 +1459,8 @@ def main():
 
     # ── Data ──────────────────────────────────────────────────────────────────
     console.print(); console.rule("[bold]📡 DATA")
-    raw = json.load(open("/tmp/btc_omega2_data.json"))
+    data_path = os.environ.get("BTCOmega_DATA_JSON", os.path.join(os.path.dirname(os.path.abspath(__file__)), "btc_omega2_data.json"))
+    raw = json.load(open(data_path))
 
     # Prefer fresh Kraken daily data; fall back to legacy 365-candle field
     kraken_raw = raw.get("1d_kraken", [])
@@ -1665,11 +1733,17 @@ def main():
 
     # ── Export ────────────────────────────────────────────────────────────────
     console.print(); console.rule("[bold]📊 EXPORTING")
-    out = "/mnt/user-data/outputs/btc_omega6_report.xlsx"
-    export_excel(primary, opt, wf, mc, comp_table, scaling, out)
+    report_path = os.environ.get("BTCOmega_REPORT_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "btc_omega6_report.xlsx"))
+    export_excel(primary, opt, wf, mc, comp_table, scaling, report_path)
 
-    import shutil
-    shutil.copy("/home/claude/btc_bot/omega6.py", "/mnt/user-data/outputs/btc_omega6_engine.py")
+    copy_dest = os.environ.get("BTCOmega_ENGINE_COPY_PATH", "")
+    if copy_dest:
+        import shutil
+        try:
+            shutil.copy(os.path.abspath(__file__), os.path.join(copy_dest, "btc_omega6_engine.py"))
+            console.print(f"  [dim]Engine copied to {copy_dest}[/]")
+        except Exception as e:
+            console.print(f"  [yellow]Copy skipped: {e}[/]")
 
     # ── Verdict ───────────────────────────────────────────────────────────────
     cap5k = mc.get("capital_for_5k",5_000*365/max(ann_use/100,0.01)) if mc else 5_000*365/max(ann_use/100,0.01)
@@ -1697,8 +1771,7 @@ def main():
         title="[bold]Omega VI — Final Verdict", border_style="cyan"))
 
     console.print(Panel(
-        f"  Engine: [bold cyan]outputs/btc_omega6_engine.py[/]\n"
-        f"  Report: [bold cyan]outputs/btc_omega6_report.xlsx[/]  (12 sheets: equity + drawdown + Omega charts)",
+        f"  Report: [bold cyan]{report_path}[/]  (12 sheets: equity + drawdown + Omega charts)",
         title="[bold]Deliverables", border_style="dim"))
 
 
