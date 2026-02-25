@@ -1254,7 +1254,8 @@ def main():
     # ── Data ──────────────────────────────────────────────────────────────────
     console.print(); console.rule("[bold]📡 DATA")
     data_path = os.environ.get("BTCOmega_DATA_JSON", os.path.join(os.path.dirname(os.path.abspath(__file__)), "btc_omega2_data.json"))
-    raw = json.load(open(data_path))
+    with open(data_path) as f:
+        raw = json.load(f)
 
     # Prefer fresh Kraken daily data; fall back to legacy 365-candle field
     kraken_raw = raw.get("1d_kraken", [])
