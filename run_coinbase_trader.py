@@ -171,9 +171,12 @@ def run_one_cycle(log) -> None:
     if mode not in ("paper", "live"):
         log.error("BTCOmega_MODE must be 'paper' or 'live'")
         sys.exit(1)
-    if mode == "live" and (not os.environ.get("COINBASE_API_KEY") or not os.environ.get("COINBASE_API_SECRET")):
-        log.error("For live trading set COINBASE_API_KEY and COINBASE_API_SECRET")
-        sys.exit(1)
+    if mode == "live":
+        has_env = os.environ.get("COINBASE_API_KEY") and os.environ.get("COINBASE_API_SECRET")
+        cdp_path = os.environ.get("COINBASE_CDP_KEY_JSON", os.path.join(os.path.dirname(os.path.abspath(__file__)), "cdp_api_key.json"))
+        if not has_env and not os.path.isfile(cdp_path):
+            log.error("For live trading set COINBASE_API_KEY and COINBASE_API_SECRET, or put cdp_api_key.json in the project")
+            sys.exit(1)
 
     sl = float(os.environ.get("BTCOmega_SL_PCT", "2.0"))
     tp = float(os.environ.get("BTCOmega_TP_PCT", "4.0"))
